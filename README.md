@@ -276,12 +276,3 @@ Se fizer isso, seu projeto fica MUITO acima da média:
 
 ---
 
-# 💡 Quer que eu crie também:
-
-* estrutura do banco SQL completa
-  ou
-* modelo de telas (layout)
-  ou
-* diagrama do sistema
-
-Qual você prefere primeiro?
