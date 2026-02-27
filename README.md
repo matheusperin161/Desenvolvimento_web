@@ -1,12 +1,5 @@
-  _    _             _____  _     _      
- | |  | |           |  __ \(_)   | |     
- | |  | |_ __   ___ | |__) |_  __| | ___ 
- | |  | | '_ \ / _ \|  _  /| |/ _` |/ _ \
- | |__| | | | | (_) | | \ \| | (_| |  __/
-  \____/|_| |_|\___/|_|  \_\_|\__,_|\___|
-                                         
-                                         
 
+                                        
 # Desenvolvimento_web
 Desenvolvimento de um site, com a funcionalidade de oferecer carona para universitários
 Sua ideia já está excelente. Agora vou te ajudar a transformar isso em um **sistema mais completo, profissional e diferenciado**, como se fosse um mini Uber universitário. Vou dividir em níveis: **básico, intermediário e avançado**, para você escolher conforme o tempo.
