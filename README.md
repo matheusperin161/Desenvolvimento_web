@@ -52,7 +52,7 @@ Fluxo geral:
 - HTML5
 - Tailwind CSS
 - JavaScript (Vanilla JS)
-- Fetch API
+
 
 ### Backend
 - Node.js
