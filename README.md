@@ -9,146 +9,58 @@
                                          
 ```
                                         
-# Desenvolvimento_web
-Desenvolvimento de um site, com a funcionalidade de oferecer carona para universitários
-Sua ideia já está excelente. Agora vou te ajudar a transformar isso em um **sistema mais completo, profissional e diferenciado**, como se fosse um mini Uber universitário. Vou dividir em níveis: **básico, intermediário e avançado**, para você escolher conforme o tempo.
+#  Sistema de Caronas Universitárias
+
+Sistema web para **oferta e reserva de caronas entre universitários**, com foco em aprendizado prático de desenvolvimento web full stack.  
+A proposta é funcionar como um **mini Uber universitário**, porém simples, direto e didático.
 
 ---
 
-Essas são as funções mínimas para funcionar bem.
+##  Objetivo do Projeto
 
-## 👤 Usuário (motorista e passageiro)
+Desenvolver um sistema web que permita:
 
-* Cadastro:
+- Motoristas universitários oferecerem caronas
+- Passageiros encontrarem caronas disponíveis
+- Contato direto entre motorista e passageiro (WhatsApp / telefone)
 
-  * nome
-  * email
-  * telefone
-  * senha
-* Login / Logout
-* Editar perfil
-* Foto do perfil
+📌 **Foco principal:** aprendizado de desenvolvimento web  
+📌 **Escopo:** sistema funcional, sem complexidade desnecessária
 
 ---
 
-## 🚗 Motorista oferece carona
+##  Visão Geral do Sistema
 
-* Cadastrar veículo:
+O sistema funciona com três papéis principais:
+- **Usuário** (pode ser motorista e passageiro)
+- **Carona**
+- **Veículo**
 
-  * placa
-  * modelo
-  * cor
-  * quantidade de vagas
-
-* Cadastrar carona:
-
-  * origem
-  * destino
-  * horário de saída
-  * valor
-  * vagas disponíveis
-  * observações (ex: "ar condicionado", "não aceito pets")
+Fluxo geral:
+1. Usuário cria conta e faz login
+2. Motorista cadastra veículo
+3. Motorista oferece carona
+4. Passageiro visualiza e filtra caronas
+5. Passageiro reserva vaga
+6. Contato é feito via WhatsApp ou telefone
 
 ---
 
-## 🎒 Passageiro utiliza carona
+## 🛠 Tecnologias Utilizadas
 
-* Ver lista de caronas disponíveis
-* Filtrar por:
+### Frontend
+- HTML5
+- Tailwind CSS
+- JavaScript (Vanilla JS)
+- Fetch API
 
-  * origem
-  * destino
-  * data
-* Reservar vaga
-* Ver dados do motorista
-* Entrar em contato (telefone ou WhatsApp)
+### Backend
+- Node.js
+- Express
 
----
-
-## Implementações futuras:
-
-## ⭐ Sistema de avaliação
-
-Depois da carona:
-
-* passageiro avalia motorista
-* motorista avalia passageiro
-
-Exemplo:
-⭐⭐⭐⭐⭐ (4.8)
-
-Campos:
-
-* nota (1 a 5)
-* comentário
+### Banco de Dados
+- MongoDB
+- Mongoose
 
 ---
 
-## 📍 Status da carona
-
-* disponível
-* lotada
-* finalizada
-* cancelada
-
----
-
-## 📅 Histórico
-
-Motorista:
-
-* caronas oferecidas
-* quem participou
-
-Passageiro:
-
-* caronas utilizadas
-
----
-
-## 🔔 Sistema de solicitação
-
-Em vez de entrar direto, passageiro envia solicitação:
-
-Motorista pode:
-
-* aceitar
-* recusar
-
----
-
----
-
-## 🔒 Verificação de estudante (diferencial universitário)
-
-Somente alunos podem usar.
-
-Exemplo:
-
-* email institucional
-  `@unochapeco.edu.br`
-
-Relaciona com Unochapecó
-
----
-
-## 🚻 Preferências
-
-Motorista pode marcar:
-
-* apenas mulheres
-* aceita pets
-* aceita bagagem
-
----
-
-Tabelas:
-
-* usuarios
-* veiculos
-* caronas
-* reservas
-* avaliacoes
-* mensagens
-
----
