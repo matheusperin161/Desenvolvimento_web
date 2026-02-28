@@ -152,22 +152,3 @@ Tabelas:
 * mensagens
 
 ---
-
-# 🧩 Exemplo de fluxo completo
-
-Motorista:
-
-1 cria conta
-2 cadastra veículo
-3 cria carona
-
-Passageiro:
-
-1 cria conta
-2 procura carona
-3 solicita vaga
-4 motorista aceita
-5 viagem acontece
-6 ambos avaliam
-
----
