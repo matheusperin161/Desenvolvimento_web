@@ -51,7 +51,7 @@ Fluxo geral:
 ### Frontend
 - HTML5
 - Tailwind CSS
-- JavaScript (Vanilla JS)
+- JavaScript
 
 
 ### Backend
