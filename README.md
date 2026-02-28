@@ -24,8 +24,8 @@ Desenvolver um sistema web que permita:
 - Passageiros encontrarem caronas disponíveis
 - Contato direto entre motorista e passageiro (WhatsApp / telefone)
 
-📌 **Foco principal:** aprendizado de desenvolvimento web  
-📌 **Escopo:** sistema funcional, sem complexidade desnecessária
+ **Foco principal:** aprendizado de desenvolvimento web  
+ **Escopo:** sistema funcional, sem complexidade desnecessária
 
 ---
 
@@ -46,7 +46,7 @@ Fluxo geral:
 
 ---
 
-## 🛠 Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 ### Frontend
 - HTML5
