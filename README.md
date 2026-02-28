@@ -15,8 +15,6 @@ Sua ideia já está excelente. Agora vou te ajudar a transformar isso em um **si
 
 ---
 
-# 🟢 NÍVEL BÁSICO (Essencial — obrigatório)
-
 Essas são as funções mínimas para funcionar bem.
 
 ## 👤 Usuário (motorista e passageiro)
@@ -67,9 +65,7 @@ Essas são as funções mínimas para funcionar bem.
 
 ---
 
-# 🟡 NÍVEL INTERMEDIÁRIO (Diferencial importante)
-
-Isso deixa seu projeto MUITO mais profissional.
+## Implementações futuras:
 
 ## ⭐ Sistema de avaliação
 
@@ -121,41 +117,6 @@ Motorista pode:
 
 ---
 
-# 🔵 NÍVEL AVANÇADO (MUUUITO diferenciado 🚀)
-
-Isso faz seu projeto parecer startup real.
-
----
-
-## 💬 Chat interno
-
-Passageiro conversa com motorista dentro do site
-
-Exemplo:
-
-* chat estilo WhatsApp
-
-Tecnologias:
-
-* AJAX
-* ou WebSocket
-
----
-
-## 🗺️ Mapa com rotas
-
-Mostrar rota no mapa usando:
-
-* Google Maps API
-  ou
-* OpenStreetMap
-
-Mostrar:
-
-* origem
-* destino
-* trajeto
-
 ---
 
 ## 🔒 Verificação de estudante (diferencial universitário)
@@ -171,34 +132,6 @@ Relaciona com Unochapecó
 
 ---
 
-## 💰 Sistema de créditos (simulado)
-
-Usuário adiciona créditos e paga caronas.
-
-Exemplo:
-Saldo: R$ 50,00
-
----
-
-## 🧠 Sistema inteligente
-
-Mostrar:
-
-"Caronas recomendadas para você"
-
-Baseado em:
-
-* rotas anteriores
-* horários frequentes
-
----
-
-# 🟣 IDEIAS DIFERENCIADAS (PROJETO TOP)
-
-Essas impressionam professor.
-
----
-
 ## 🚻 Preferências
 
 Motorista pode marcar:
@@ -208,42 +141,6 @@ Motorista pode marcar:
 * aceita bagagem
 
 ---
-
-## 📊 Estatísticas
-
-Motorista vê:
-
-* total de viagens
-* total ganho
-* média avaliação
-
----
-
-## 🟢 Sistema de confiança
-
-Mostrar:
-
-Motorista verificado ✔️
-Telefone verificado ✔️
-CNH verificada ✔️
-
----
-
-## 🚨 Botão de segurança
-
-Botão:
-
-"Compartilhar viagem com amigo"
-
-Envia:
-
-* nome motorista
-* placa
-* rota
-
----
-
-# 🗄️ Estrutura de banco recomendada
 
 Tabelas:
 
@@ -274,16 +171,3 @@ Passageiro:
 6 ambos avaliam
 
 ---
-
-# 🏆 DIFERENCIAL MÁXIMO (recomendado)
-
-Se fizer isso, seu projeto fica MUITO acima da média:
-
-* avaliação ⭐
-* chat 💬
-* histórico 📅
-* verificação ✔️
-* mapa 🗺️
-
----
-
