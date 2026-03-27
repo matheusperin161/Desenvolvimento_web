@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Caronas — Carona Universitária</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+        Carona Uni
+      </a>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="/">Início</a></li>
+        <li><a href="/find-rides.html">Buscar Caronas</a></li>
+        <li><a href="/offer-ride.html">Oferecer Carona</a></li>
+        <li><a href="/my-rides.html" class="active">Minhas Caronas</a></li>
+        <li>
+          <div class="navbar-user" id="userMenu">
+            <div id="navAvatarWrap"></div>
+            <span id="navUserName"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <a href="/dashboard.html">Dashboard</a>
+              <a href="/profile.html">Meu Perfil</a>
+              <hr/>
+              <a href="#" class="danger" id="logoutBtn">Sair</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <h1>Minhas caronas</h1>
+      <p>Gerencie suas caronas como motorista e suas reservas como passageiro</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="driver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+        Como motorista
+      </div>
+      <div class="tab" data-tab="passenger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Como passageiro
+      </div>
+    </div>
+
+    <!-- TAB: MOTORISTA -->
+    <div id="tabDriver">
+      <div class="flex justify-between items-center mb-2">
+        <h3 style="font-size:1rem;font-weight:600;color:var(--text-muted);">Suas caronas oferecidas</h3>
+        <a href="/offer-ride.html" class="btn btn-primary btn-sm">+ Nova carona</a>
+      </div>
+      <div id="driverRidesList" style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- TAB: PASSAGEIRO -->
+    <div id="tabPassenger" style="display:none;">
+      <h3 style="font-size:1rem;font-weight:600;color:var(--text-muted);margin-bottom:1rem;">Suas reservas de carona</h3>
+      <div id="passengerRidesList" style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CANCELAR CARONA -->
+  <div class="modal-overlay hidden" id="cancelModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Cancelar carona</h2>
+        <button class="modal-close" id="closeCancelModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="color:var(--text-muted);margin-bottom:1.25rem;">Tem certeza que deseja cancelar esta carona? Todos os passageiros serão notificados.</p>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn btn-ghost" id="cancelModalNo">Voltar</button>
+        <button class="btn btn-danger" id="cancelModalYes">Sim, cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/my-rides.js"></script>
+</body>
+</html>

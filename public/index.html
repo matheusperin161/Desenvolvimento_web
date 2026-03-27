@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carona Universitária</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
+          <rect x="9" y="11" width="14" height="10" rx="2"/>
+          <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        </svg>
+        Carona Uni
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="/" class="active">Início</a></li>
+        <li><a href="/find-rides.html">Buscar Caronas</a></li>
+        <li id="navLoggedOut">
+          <a href="/login.html">Entrar</a>
+        </li>
+        <li id="navLoggedOut2">
+          <a href="/register.html" class="btn-nav">Cadastrar</a>
+        </li>
+        <li id="navLoggedIn" style="display:none;">
+          <div class="navbar-user" id="userMenu">
+            <div id="navAvatarWrap"></div>
+            <span id="navUserName"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <a href="/dashboard.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </a>
+              <a href="/offer-ride.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Oferecer Carona
+              </a>
+              <a href="/profile.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Meu Perfil
+              </a>
+              <hr/>
+              <a href="#" class="danger" id="logoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sair
+              </a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Caronas universitárias<br>simples e seguras</h1>
+    <p>Conecte-se com estudantes da sua universidade. Economize, faça amigos e ajude o meio ambiente.</p>
+
+    <div class="search-box">
+      <div class="form-group">
+        <label>Origem</label>
+        <div class="input-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          <input type="text" id="searchOrigin" placeholder="De onde você vai sair?" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Destino</label>
+        <div class="input-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          <input type="text" id="searchDest" placeholder="Para onde você vai?" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <div class="input-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input type="date" id="searchDate" />
+        </div>
+      </div>
+      <button class="btn btn-accent btn-lg" id="searchBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Buscar
+      </button>
+    </div>
+  </section>
+
+  <!-- CARONAS RECENTES -->
+  <div class="container">
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="section-title">Caronas disponíveis <span id="ridesCount"></span></h2>
+      <a href="/find-rides.html" class="btn btn-outline btn-sm">Ver todas</a>
+    </div>
+    <div id="ridesContainer" class="rides-grid">
+      <div class="loader"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <h2 class="features-title">Por que usar o Carona Uni?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Exclusivo para universitários</h3>
+        <p>Conecte-se com estudantes da sua universidade de forma segura e confiável.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Economize no transporte</h3>
+        <p>Divida os custos da viagem e reduza significativamente seus gastos com transporte.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌱</div>
+        <h3>Bem para o meio ambiente</h3>
+        <p>Menos carros nas ruas significa menos poluição e uma cidade mais sustentável.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>Fácil de usar</h3>
+        <p>Interface simples e intuitiva. Em poucos cliques você encontra ou oferece uma carona.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background: linear-gradient(135deg, var(--secondary), var(--primary)); padding: 4rem 1.5rem; text-align: center; color: white;">
+    <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Pronto para começar?</h2>
+    <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">Crie sua conta gratuitamente e comece a usar hoje mesmo.</p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="/register.html" class="btn btn-accent btn-lg">Criar conta grátis</a>
+      <a href="/find-rides.html" class="btn btn-outline btn-lg" style="color:white; border-color:white;">Ver caronas</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p><strong>Carona Universitária</strong> &mdash; Feito com ❤️ para estudantes &bull; 2024</p>
+  </footer>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/index.js"></script>
+</body>
+</html>

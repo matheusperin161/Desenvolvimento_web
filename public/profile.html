@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meu Perfil — Carona Universitária</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+        Carona Uni
+      </a>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="/">Início</a></li>
+        <li><a href="/find-rides.html">Buscar Caronas</a></li>
+        <li><a href="/offer-ride.html">Oferecer Carona</a></li>
+        <li><a href="/my-rides.html">Minhas Caronas</a></li>
+        <li>
+          <div class="navbar-user" id="userMenu">
+            <div id="navAvatarWrap"></div>
+            <span id="navUserName"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <a href="/dashboard.html">Dashboard</a>
+              <a href="/profile.html">Meu Perfil</a>
+              <hr/>
+              <a href="#" class="danger" id="logoutBtn">Sair</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- PROFILE HEADER -->
+  <div class="profile-header">
+    <div class="profile-photo-wrap">
+      <div id="profilePhotoDisplay"></div>
+      <button class="photo-edit-btn" id="photoEditBtn" title="Alterar foto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      </button>
+    </div>
+    <h2 id="profileName" style="font-size:1.4rem;font-weight:700;margin-bottom:0.25rem;"></h2>
+    <p id="profileEmail" style="opacity:0.85;font-size:0.9rem;"></p>
+    <input type="file" id="photoInput" accept="image/*" style="display:none;" />
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Dados Pessoais
+      </div>
+      <div class="tab" data-tab="vehicles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+        Meus Veículos
+      </div>
+    </div>
+
+    <!-- TAB: PERFIL -->
+    <div id="tabProfile">
+      <div class="card" style="max-width:560px;">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">Editar perfil</h3>
+        <form id="profileForm">
+          <div class="form-group">
+            <label for="editName">Nome completo</label>
+            <input type="text" id="editName" placeholder="Seu nome" required />
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="editEmail" disabled style="background:var(--bg);color:var(--text-muted);" />
+            <small class="text-muted text-sm">O e-mail não pode ser alterado</small>
+          </div>
+          <div class="form-group">
+            <label for="editPhone">Telefone / WhatsApp</label>
+            <input type="tel" id="editPhone" placeholder="(11) 99999-9999" required />
+          </div>
+          <button type="submit" class="btn btn-primary" id="saveProfileBtn">Salvar alterações</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB: VEÍCULOS -->
+    <div id="tabVehicles" style="display:none;">
+      <div class="flex justify-between items-center mb-2">
+        <h3 style="font-size:1.1rem;font-weight:700;">Meus veículos</h3>
+        <button class="btn btn-primary btn-sm" id="addVehicleBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar veículo
+        </button>
+      </div>
+      <div id="vehiclesList" style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADICIONAR VEÍCULO -->
+  <div class="modal-overlay hidden" id="vehicleModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="vehicleModalTitle">Adicionar veículo</h2>
+        <button class="modal-close" id="closeVehicleModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="vehicleForm">
+        <input type="hidden" id="vehicleId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vPlate">Placa</label>
+            <input type="text" id="vPlate" placeholder="ABC-1234" required maxlength="8" style="text-transform:uppercase;" />
+          </div>
+          <div class="form-group">
+            <label for="vSeats">Nº de vagas</label>
+            <input type="number" id="vSeats" placeholder="4" min="1" max="10" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="vModel">Modelo</label>
+          <input type="text" id="vModel" placeholder="Ex: Honda Civic, VW Gol..." required />
+        </div>
+        <div class="form-group">
+          <label for="vColor">Cor</label>
+          <input type="text" id="vColor" placeholder="Ex: Prata, Preto, Branco..." required />
+        </div>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:0.5rem;">
+          <button type="button" class="btn btn-ghost" id="cancelVehicleBtn">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="saveVehicleBtn">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>
