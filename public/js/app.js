@@ -186,6 +186,37 @@ function setupNavbar() {
   }
 }
 
+// ── Button loading state ──────────────────────────────────────
+function setButtonLoading(btn, loading, originalText) {
+  if (loading) {
+    btn._originalText = btn.innerHTML;
+    btn.innerHTML = (originalText || btn.textContent) + ' ';
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn._originalText || originalText || btn.innerHTML;
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+  }
+}
+
+// ── Skeleton cards ────────────────────────────────────────────
+function skeletonCards(count = 3) {
+  return Array.from({ length: count }, () => `
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-line title"></div>
+      <div class="skeleton skeleton-line wide"></div>
+      <div class="skeleton skeleton-line medium"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;">
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="skeleton skeleton-line short" style="margin:0;width:80px;"></div>
+        </div>
+        <div class="skeleton skeleton-line short" style="margin:0;width:60px;height:18px;"></div>
+      </div>
+    </div>`).join('');
+}
+
 // ── Guard: require login ──────────────────────────────────────
 function requireLogin() {
   if (!Auth.isLoggedIn()) {
@@ -195,5 +226,46 @@ function requireLogin() {
   return true;
 }
 
+// ── Notificações ──────────────────────────────────────────────
+async function loadNotifications() {
+  if (!Auth.isLoggedIn()) return;
+  try {
+    const data = await api('/notifications');
+    const badge = document.getElementById('notifBadge');
+    const list = document.getElementById('notifList');
+    if (badge) badge.textContent = data.unread > 0 ? data.unread : '';
+    if (list) {
+      if (data.notifications.length === 0) {
+        list.innerHTML = '<p class="notif-empty">Nenhuma notificação</p>';
+      } else {
+        list.innerHTML = data.notifications.map(n => `
+          <div class="notif-item${n.read ? '' : ' unread'}" data-id="${n.id}" onclick="markNotifRead(${n.id}, ${n.ride_id})">
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-msg">${n.message}</div>
+            <div class="notif-time">${formatDateTime(n.created_at)}</div>
+          </div>`).join('');
+      }
+    }
+  } catch (_) {}
+}
+
+async function markNotifRead(id, rideId) {
+  try {
+    await api(`/notifications/${id}/read`, { method: 'PUT' });
+    if (rideId) window.location.href = `/ride-detail.html?id=${rideId}`;
+    else loadNotifications();
+  } catch (_) {}
+}
+
+async function markAllNotifRead() {
+  try {
+    await api('/notifications/read-all', { method: 'PUT' });
+    loadNotifications();
+  } catch (_) {}
+}
+
 // Initialize navbar on every page
-document.addEventListener('DOMContentLoaded', setupNavbar);
+document.addEventListener('DOMContentLoaded', () => {
+  setupNavbar();
+  loadNotifications();
+});

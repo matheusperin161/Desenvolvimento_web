@@ -32,8 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Entrando...';
+    setButtonLoading(btn, true, 'Entrando…');
 
     try {
       const data = await api('/auth/login', {
@@ -47,8 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = redirect;
     } catch (err) {
       showError(err.message);
-      btn.disabled = false;
-      btn.textContent = 'Entrar';
+      setButtonLoading(btn, false, 'Entrar');
     }
   });
 });

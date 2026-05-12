@@ -54,8 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Criando conta...';
+    setButtonLoading(btn, true, 'Criando conta…');
 
     try {
       const data = await api('/auth/register', {
@@ -67,8 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => window.location.href = '/dashboard.html', 800);
     } catch (err) {
       showError(err.message);
-      btn.disabled = false;
-      btn.textContent = 'Criar conta';
+      setButtonLoading(btn, false, 'Criar conta');
     }
   });
 });
