@@ -1,145 +1,356 @@
 const express = require('express');
-const db = require('../database/db');
+const { Op } = require('sequelize');
+const { sequelize, Ride, User, Vehicle, Reservation, Notification } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { sanitizeBody, sanitizeStr, validateRideBody, validatePositiveFloat, validatePositiveInt } = require('../middleware/validate');
 
 const router = express.Router();
 
-// Listar caronas (com filtros)
-router.get('/', (req, res) => {
-  const { origin, destination, date } = req.query;
-  let query = `
-    SELECT r.*,
-      u.name as driver_name, u.phone as driver_phone, u.profile_photo as driver_photo,
-      v.model as vehicle_model, v.color as vehicle_color, v.plate as vehicle_plate
-    FROM rides r
-    JOIN users u ON r.driver_id = u.id
-    JOIN vehicles v ON r.vehicle_id = v.id
-    WHERE r.status = 'active' AND r.available_seats > 0
-      AND datetime(r.departure_time) > datetime('now', 'localtime')
-  `;
-  const params = [];
-  if (origin) { query += ' AND LOWER(r.origin) LIKE ?'; params.push(`%${origin.toLowerCase()}%`); }
-  if (destination) { query += ' AND LOWER(r.destination) LIKE ?'; params.push(`%${destination.toLowerCase()}%`); }
-  if (date) { query += ' AND date(r.departure_time) = ?'; params.push(date); }
-  query += ' ORDER BY r.departure_time ASC';
+router.use(sanitizeBody);
 
-  const rides = db.prepare(query).all(...params);
-  res.json(rides);
+// Listar caronas (com filtros)
+router.get('/', async (req, res) => {
+  try {
+    const { origin, destination, date, time_from, time_to, max_price, min_seats } = req.query;
+
+    const where = {
+      status: 'active',
+      available_seats: { [Op.gt]: 0 },
+      departure_time: { [Op.gt]: new Date() },
+    };
+
+    if (origin) where.origin = { [Op.like]: `%${sanitizeStr(origin)}%` };
+    if (destination) where.destination = { [Op.like]: `%${sanitizeStr(destination)}%` };
+
+    if (date) {
+      const andClauses = [
+        sequelize.where(sequelize.fn('DATE', sequelize.col('departure_time')), date),
+      ];
+
+      if (time_from) {
+        andClauses.push(
+          sequelize.where(sequelize.fn('TIME', sequelize.col('departure_time')), { [Op.gte]: time_from })
+        );
+      }
+      if (time_to) {
+        andClauses.push(
+          sequelize.where(sequelize.fn('TIME', sequelize.col('departure_time')), { [Op.lte]: time_to })
+        );
+      }
+
+      where[Op.and] = andClauses;
+    }
+
+    if (max_price != null && max_price !== '') {
+      const maxP = parseFloat(max_price);
+      if (!isNaN(maxP)) where.price = { [Op.lte]: maxP };
+    }
+
+    if (min_seats != null && min_seats !== '') {
+      const minS = parseInt(min_seats, 10);
+      if (!isNaN(minS) && minS > 0) where.available_seats = { [Op.gte]: minS };
+    }
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12));
+    const offset = (page - 1) * limit;
+
+    const { count, rows: rides } = await Ride.findAndCountAll({
+      where,
+      include: [
+        { model: User, as: 'driver', attributes: ['name', 'phone', 'profile_photo'] },
+        { model: Vehicle, attributes: ['model', 'color', 'plate'] },
+      ],
+      order: [['departure_time', 'ASC']],
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(count / limit);
+
+    const result = rides.map(r => {
+      const data = r.toJSON();
+      return {
+        ...data,
+        driver_name: data.driver.name,
+        driver_phone: data.driver.phone,
+        driver_photo: data.driver.profile_photo,
+        vehicle_model: data.Vehicle.model,
+        vehicle_color: data.Vehicle.color,
+        vehicle_plate: data.Vehicle.plate,
+        driver: undefined,
+        Vehicle: undefined,
+      };
+    });
+
+    res.json({ rides: result, total: count, page, totalPages, limit });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Minhas caronas (como motorista) — deve vir antes de /:id
+router.get('/my/driver', authMiddleware, async (req, res) => {
+  try {
+    const rides = await Ride.findAll({
+      where: { driver_id: req.userId },
+      include: [{ model: Vehicle, attributes: ['model', 'color', 'plate'] }],
+      attributes: {
+        include: [[
+          sequelize.literal(`(SELECT COUNT(*) FROM reservations WHERE ride_id = \`Ride\`.\`id\` AND status = 'confirmed')`),
+          'confirmed_passengers',
+        ]],
+      },
+      order: [['departure_time', 'DESC']],
+    });
+
+    const result = rides.map(r => {
+      const data = r.toJSON();
+      return {
+        ...data,
+        vehicle_model: data.Vehicle.model,
+        vehicle_color: data.Vehicle.color,
+        vehicle_plate: data.Vehicle.plate,
+        Vehicle: undefined,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Minhas reservas (como passageiro) — deve vir antes de /:id
+router.get('/my/passenger', authMiddleware, async (req, res) => {
+  try {
+    const reservations = await Reservation.findAll({
+      where: { passenger_id: req.userId },
+      include: [
+        {
+          model: Ride,
+          include: [
+            { model: User, as: 'driver', attributes: ['name', 'phone', 'profile_photo'] },
+            { model: Vehicle, attributes: ['model', 'color', 'plate'] },
+          ],
+        },
+      ],
+      order: [[Ride, 'departure_time', 'DESC']],
+    });
+
+    const result = reservations.map(res => {
+      const r = res.Ride.toJSON();
+      return {
+        ...r,
+        driver_name: r.driver.name,
+        driver_phone: r.driver.phone,
+        driver_photo: r.driver.profile_photo,
+        vehicle_model: r.Vehicle.model,
+        vehicle_color: r.Vehicle.color,
+        vehicle_plate: r.Vehicle.plate,
+        driver: undefined,
+        Vehicle: undefined,
+        reservation_id: res.id,
+        reservation_status: res.status,
+        presence_confirmed: res.presence_confirmed,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Detalhe de uma carona
-router.get('/:id', (req, res) => {
-  const ride = db.prepare(`
-    SELECT r.*,
-      u.name as driver_name, u.phone as driver_phone, u.profile_photo as driver_photo,
-      v.model as vehicle_model, v.color as vehicle_color, v.plate as vehicle_plate, v.seats as vehicle_seats
-    FROM rides r
-    JOIN users u ON r.driver_id = u.id
-    JOIN vehicles v ON r.vehicle_id = v.id
-    WHERE r.id = ?
-  `).get(req.params.id);
-  if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
+router.get('/:id', async (req, res) => {
+  try {
+    const ride = await Ride.findByPk(req.params.id, {
+      include: [
+        { model: User, as: 'driver', attributes: ['name', 'phone', 'profile_photo'] },
+        { model: Vehicle, attributes: ['model', 'color', 'plate', 'seats'] },
+      ],
+    });
+    if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
 
-  const passengers = db.prepare(`
-    SELECT u.id, u.name, u.profile_photo FROM reservations res
-    JOIN users u ON res.passenger_id = u.id
-    WHERE res.ride_id = ? AND res.status = 'confirmed'
-  `).all(req.params.id);
+    const passengers = await Reservation.findAll({
+      where: { ride_id: req.params.id, status: 'confirmed' },
+      include: [{ model: User, as: 'passenger', attributes: ['id', 'name', 'profile_photo'] }],
+    });
 
-  res.json({ ...ride, passengers });
+    const data = ride.toJSON();
+    res.json({
+      ...data,
+      driver_name: data.driver.name,
+      driver_phone: data.driver.phone,
+      driver_photo: data.driver.profile_photo,
+      vehicle_model: data.Vehicle.model,
+      vehicle_color: data.Vehicle.color,
+      vehicle_plate: data.Vehicle.plate,
+      vehicle_seats: data.Vehicle.seats,
+      driver: undefined,
+      Vehicle: undefined,
+      passengers: passengers.map(p => p.passenger),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Criar carona
-router.post('/', authMiddleware, (req, res) => {
-  const { vehicle_id, origin, destination, departure_time, price, available_seats, notes } = req.body;
-  if (!vehicle_id || !origin || !destination || !departure_time || price == null || !available_seats) {
-    return res.status(400).json({ error: 'Campos obrigatórios faltando' });
-  }
-  const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ? AND user_id = ?').get(vehicle_id, req.userId);
-  if (!vehicle) return res.status(404).json({ error: 'Veículo não encontrado' });
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    const validationError = validateRideBody(req.body);
+    if (validationError) return res.status(400).json({ error: validationError });
 
-  if (new Date(departure_time) <= new Date()) {
-    return res.status(400).json({ error: 'Horário de saída deve ser no futuro' });
-  }
-  const seats = parseInt(available_seats);
-  if (seats < 1 || seats > vehicle.seats) {
-    return res.status(400).json({ error: `Vagas disponíveis deve ser entre 1 e ${vehicle.seats}` });
-  }
+    const { vehicle_id, origin, destination, departure_time, price, available_seats, notes } = req.body;
 
-  const result = db.prepare(`
-    INSERT INTO rides (driver_id, vehicle_id, origin, destination, departure_time, price, available_seats, total_seats, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(req.userId, vehicle_id, origin, destination, departure_time, parseFloat(price), seats, seats, notes || '');
+    const vehicle = await Vehicle.findOne({ where: { id: vehicle_id, user_id: req.userId } });
+    if (!vehicle) return res.status(404).json({ error: 'Veículo não encontrado' });
 
-  const ride = db.prepare('SELECT * FROM rides WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(ride);
+    if (new Date(departure_time) <= new Date())
+      return res.status(400).json({ error: 'Horário de saída deve ser no futuro' });
+
+    const seats = parseInt(available_seats, 10);
+    if (seats < 1 || seats > vehicle.seats)
+      return res.status(400).json({ error: `Vagas disponíveis deve ser entre 1 e ${vehicle.seats}` });
+
+    const safeNotes = notes ? sanitizeStr(notes, 500) : '';
+
+    const ride = await Ride.create({
+      driver_id: req.userId,
+      vehicle_id: parseInt(vehicle_id, 10),
+      origin: sanitizeStr(origin),
+      destination: sanitizeStr(destination),
+      departure_time,
+      price: parseFloat(price),
+      available_seats: seats,
+      total_seats: seats,
+      notes: safeNotes,
+    });
+
+    res.status(201).json(ride);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Cancelar carona (motorista)
-router.delete('/:id', authMiddleware, (req, res) => {
-  const ride = db.prepare('SELECT * FROM rides WHERE id = ? AND driver_id = ?').get(req.params.id, req.userId);
-  if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
-  db.prepare("UPDATE rides SET status = 'cancelled' WHERE id = ?").run(req.params.id);
-  res.json({ message: 'Carona cancelada' });
-});
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const ride = await Ride.findOne({ where: { id: req.params.id, driver_id: req.userId } });
+    if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
 
-// Minhas caronas (como motorista)
-router.get('/my/driver', authMiddleware, (req, res) => {
-  const rides = db.prepare(`
-    SELECT r.*,
-      v.model as vehicle_model, v.color as vehicle_color, v.plate as vehicle_plate,
-      (SELECT COUNT(*) FROM reservations WHERE ride_id = r.id AND status = 'confirmed') as confirmed_passengers
-    FROM rides r
-    JOIN vehicles v ON r.vehicle_id = v.id
-    WHERE r.driver_id = ?
-    ORDER BY r.departure_time DESC
-  `).all(req.userId);
-  res.json(rides);
-});
+    await ride.update({ status: 'cancelled' });
 
-// Minhas reservas (como passageiro)
-router.get('/my/passenger', authMiddleware, (req, res) => {
-  const rides = db.prepare(`
-    SELECT r.*,
-      u.name as driver_name, u.phone as driver_phone, u.profile_photo as driver_photo,
-      v.model as vehicle_model, v.color as vehicle_color, v.plate as vehicle_plate,
-      res.id as reservation_id, res.status as reservation_status
-    FROM reservations res
-    JOIN rides r ON res.ride_id = r.id
-    JOIN users u ON r.driver_id = u.id
-    JOIN vehicles v ON r.vehicle_id = v.id
-    WHERE res.passenger_id = ?
-    ORDER BY r.departure_time DESC
-  `).all(req.userId);
-  res.json(rides);
+    // Notifica todos os passageiros confirmados
+    const reservations = await Reservation.findAll({ where: { ride_id: ride.id, status: 'confirmed' } });
+    await Promise.all(reservations.map(r =>
+      Notification.create({
+        user_id: r.passenger_id,
+        type: 'ride_cancelled',
+        title: 'Carona cancelada',
+        message: `A carona de ${ride.origin} para ${ride.destination} foi cancelada pelo motorista.`,
+        ride_id: ride.id,
+      })
+    ));
+
+    res.json({ message: 'Carona cancelada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Reservar vaga
-router.post('/:id/reserve', authMiddleware, (req, res) => {
-  const ride = db.prepare('SELECT * FROM rides WHERE id = ?').get(req.params.id);
-  if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
-  if (ride.status !== 'active') return res.status(400).json({ error: 'Carona não está ativa' });
-  if (ride.available_seats <= 0) return res.status(400).json({ error: 'Sem vagas disponíveis' });
-  if (ride.driver_id === req.userId) return res.status(400).json({ error: 'Você é o motorista desta carona' });
+router.post('/:id/reserve', authMiddleware, async (req, res) => {
+  try {
+    const ride = await Ride.findByPk(req.params.id);
+    if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
+    if (ride.status !== 'active') return res.status(400).json({ error: 'Carona não está ativa' });
+    if (ride.available_seats <= 0) return res.status(400).json({ error: 'Sem vagas disponíveis' });
+    if (ride.driver_id === req.userId) return res.status(400).json({ error: 'Você é o motorista desta carona' });
 
-  const existing = db.prepare('SELECT * FROM reservations WHERE ride_id = ? AND passenger_id = ?').get(req.params.id, req.userId);
-  if (existing) return res.status(409).json({ error: 'Você já reservou esta carona' });
+    const existing = await Reservation.findOne({ where: { ride_id: req.params.id, passenger_id: req.userId } });
+    if (existing) return res.status(409).json({ error: 'Você já reservou esta carona' });
 
-  db.prepare('INSERT INTO reservations (ride_id, passenger_id) VALUES (?, ?)').run(req.params.id, req.userId);
-  db.prepare('UPDATE rides SET available_seats = available_seats - 1 WHERE id = ?').run(req.params.id);
-  res.status(201).json({ message: 'Vaga reservada com sucesso!' });
+    await Reservation.create({ ride_id: req.params.id, passenger_id: req.userId });
+    await ride.decrement('available_seats');
+
+    // Notifica o motorista
+    const passenger = await User.findByPk(req.userId, { attributes: ['name'] });
+    await Notification.create({
+      user_id: ride.driver_id,
+      type: 'reservation_confirmed',
+      title: 'Nova reserva!',
+      message: `${passenger.name} reservou uma vaga na sua carona de ${ride.origin} para ${ride.destination}.`,
+      ride_id: ride.id,
+    });
+
+    res.status(201).json({ message: 'Vaga reservada com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Confirmar presença (passageiro confirma que vai estar na carona)
+router.put('/:id/confirm-presence', authMiddleware, async (req, res) => {
+  try {
+    const reservation = await Reservation.findOne({
+      where: { ride_id: req.params.id, passenger_id: req.userId, status: 'confirmed' },
+    });
+    if (!reservation) return res.status(404).json({ error: 'Reserva não encontrada' });
+
+    const ride = await Ride.findByPk(req.params.id);
+    if (!ride) return res.status(404).json({ error: 'Carona não encontrada' });
+
+    if (ride.status !== 'active') return res.status(400).json({ error: 'Carona não está ativa' });
+
+    await reservation.update({ presence_confirmed: true, presence_confirmed_at: new Date() });
+
+    // Notifica o motorista
+    const passenger = await User.findByPk(req.userId, { attributes: ['name'] });
+    await Notification.create({
+      user_id: ride.driver_id,
+      type: 'presence_confirmed',
+      title: 'Presença confirmada',
+      message: `${passenger.name} confirmou presença na sua carona de ${ride.origin} para ${ride.destination}.`,
+      ride_id: ride.id,
+    });
+
+    res.json({ message: 'Presença confirmada com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Cancelar reserva (passageiro)
-router.delete('/:id/reserve', authMiddleware, (req, res) => {
-  const reservation = db.prepare(
-    'SELECT * FROM reservations WHERE ride_id = ? AND passenger_id = ?'
-  ).get(req.params.id, req.userId);
-  if (!reservation) return res.status(404).json({ error: 'Reserva não encontrada' });
+router.delete('/:id/reserve', authMiddleware, async (req, res) => {
+  try {
+    const reservation = await Reservation.findOne({
+      where: { ride_id: req.params.id, passenger_id: req.userId },
+    });
+    if (!reservation) return res.status(404).json({ error: 'Reserva não encontrada' });
 
-  db.prepare('DELETE FROM reservations WHERE ride_id = ? AND passenger_id = ?').run(req.params.id, req.userId);
-  db.prepare('UPDATE rides SET available_seats = available_seats + 1 WHERE id = ?').run(req.params.id);
-  res.json({ message: 'Reserva cancelada' });
+    const ride = await Ride.findByPk(req.params.id);
+    await reservation.destroy();
+    await Ride.increment('available_seats', { where: { id: req.params.id } });
+
+    // Notifica o motorista
+    if (ride) {
+      const passenger = await User.findByPk(req.userId, { attributes: ['name'] });
+      await Notification.create({
+        user_id: ride.driver_id,
+        type: 'reservation_cancelled',
+        title: 'Reserva cancelada',
+        message: `${passenger.name} cancelou a reserva na sua carona de ${ride.origin} para ${ride.destination}.`,
+        ride_id: ride.id,
+      });
+    }
+
+    res.json({ message: 'Reserva cancelada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
