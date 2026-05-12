@@ -5,6 +5,8 @@ module.exports = (sequelize) => sequelize.define('Reservation', {
   ride_id: { type: DataTypes.INTEGER, allowNull: false },
   passenger_id: { type: DataTypes.INTEGER, allowNull: false },
   status: { type: DataTypes.STRING, defaultValue: 'confirmed' },
+  presence_confirmed: { type: DataTypes.BOOLEAN, defaultValue: false },
+  presence_confirmed_at: { type: DataTypes.DATE, allowNull: true },
 }, {
   tableName: 'reservations',
   timestamps: true,

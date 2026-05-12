@@ -95,7 +95,9 @@ async function loadPassengerRides() {
       return;
     }
     list.innerHTML = rides.map(r => {
-      const canCancel = r.reservation_status === 'confirmed' && r.status === 'active' && new Date(r.departure_time) > new Date();
+      const isActive = r.reservation_status === 'confirmed' && r.status === 'active' && new Date(r.departure_time) > new Date();
+      const canCancel = isActive;
+      const canConfirm = isActive && !r.presence_confirmed;
       const waLink = `https://wa.me/55${r.driver_phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${r.driver_name}! Reservei uma vaga na carona (${r.origin} → ${r.destination}) no Carona Uni.`)}`;
 
       return `
@@ -108,6 +110,7 @@ async function loadPassengerRides() {
               <div style="color:var(--text-muted);font-size:0.875rem;margin-bottom:0.5rem;">${formatDateTime(r.departure_time)}</div>
               <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
                 ${statusBadge(r.status)}
+                ${r.presence_confirmed ? '<span class="badge badge-success">Presença confirmada ✓</span>' : ''}
                 <span class="badge badge-muted">${r.vehicle_model} · ${r.vehicle_plate}</span>
                 <span style="font-weight:600;color:var(--secondary);">${formatPrice(r.price)}</span>
               </div>
@@ -119,6 +122,7 @@ async function loadPassengerRides() {
             <div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
               <a href="/ride-detail.html?id=${r.id}" class="btn btn-outline btn-sm">Ver detalhes</a>
               <a href="${waLink}" target="_blank" rel="noopener" class="btn whatsapp-btn btn-sm">WhatsApp</a>
+              ${canConfirm ? `<button class="btn btn-primary btn-sm" onclick="confirmPresence(${r.id})">Confirmar presença</button>` : ''}
               ${canCancel ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="cancelReservation(${r.id})">Cancelar reserva</button>` : ''}
             </div>
           </div>
@@ -132,6 +136,16 @@ async function loadPassengerRides() {
 function openCancelModal(id) {
   cancelRideId = id;
   document.getElementById('cancelModal').classList.remove('hidden');
+}
+
+async function confirmPresence(rideId) {
+  try {
+    await api(`/rides/${rideId}/confirm-presence`, { method: 'PUT' });
+    showToast('Presença confirmada!', 'success');
+    await loadPassengerRides();
+  } catch (e) {
+    showToast(e.message || 'Erro ao confirmar presença.', 'error');
+  }
 }
 
 async function cancelReservation(rideId) {
